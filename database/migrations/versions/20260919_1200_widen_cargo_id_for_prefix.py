@@ -49,10 +49,21 @@ def downgrade() -> None:
     op.drop_index('ix_clients_agent_id', table_name='clients')
     op.drop_column('clients', 'agent_id')
 
-    # Prefiksli ID lar 5 belgiga sig'maydi. Mijozni o'chirib yubormaslik uchun
-    # (shipments'ga CASCADE ketadi) faqat cargo_id ni NULL ga tushiramiz —
-    # ustun nullable, mijoz va uning yuklari saqlanib qoladi.
-    op.execute("UPDATE clients SET cargo_id = NULL WHERE cargo_id ~ '[^0-9]'")
+    # Prefiksli ID lar (MS48392) VARCHAR(5) ga sig'maydi. Ularni jimgina
+    # o'chirib yuborish xavfli — avval tekshiramiz va ma'lumot yo'qoladigan
+    # bo'lsa, downgrade'ni to'xtatamiz. Hech narsa o'zgarmaydi.
+    conn = op.get_bind()
+    prefixed = conn.execute(
+        sa.text("SELECT count(*) FROM clients WHERE cargo_id ~ '[^0-9]'")
+    ).scalar() or 0
+
+    if prefixed:
+        raise RuntimeError(
+            f"{prefixed} ta mijozda prefiksli Cargo ID bor (masalan MS48392). "
+            "Downgrade ularni yo'q qiladi. Avval shu ID larni qo'lda hal qiling "
+            "(o'chiring yoki 5 xonali IDga o'tkazing), keyin qaytadan urinib ko'ring."
+        )
+
     op.alter_column(
         'clients', 'cargo_id',
         existing_type=sa.VARCHAR(length=10),
