@@ -17,7 +17,7 @@ from aiogram.types import (
 
 from bot.keyboards.inline_kb import yes_no_keyboard, navigation_keyboard
 from bot.middlewares.i18n_middleware import I18nMiddleware
-from bot.utils.agents import AGENTS, get_agent
+from bot.utils.agents import AGENTS, get_agent, get_agent_by_prefix
 from bot.utils.cargo_id_gen import (
     PREFIX_NONE,
     cargo_id_generator,
@@ -560,8 +560,11 @@ async def _persist_cargo_id(
     manager_id: int,
 ) -> str:
     """DB ga saqlash va natija matnini qaytarish."""
-    data = await state.get_data()
-    agent = get_agent(data.get("agent_key") or "")
+    # Agent ID PREFIKSIDAN aniqlanadi, tanlangan tugmadan emas. Shunda ID va
+    # biriktirish hech qachon bir-biriga zid bo'lmaydi: "MS..." bilan
+    # boshlangan har qanday ID, hatto qo'lda kiritilgani ham, agentga bog'lanadi.
+    prefix, _ = split_cargo_id(new_cargo_id)
+    agent = get_agent_by_prefix(prefix)
 
     notification_sent = False
     async with get_session() as session:
