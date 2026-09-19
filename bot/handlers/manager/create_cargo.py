@@ -576,6 +576,13 @@ async def _persist_cargo_id(
             )
             agent_db_id = agent_client.id
 
+        if not client_id:
+            # Raqam bo'yicha qayta tekshiramiz: agentning o'ziga ID yaratilayotgan
+            # bo'lsa, uning yozuvi yuqorida endigina yaratilgan bo'lishi mumkin —
+            # bir xil raqam bilan ikkinchi mijoz yaratsak unique buziladi.
+            existing = await client_crud.get_by_phone(session, phone)
+            client_id = existing.id if existing else None
+
         if client_id:
             client = await client_crud.update_cargo_id(session, client_id, new_cargo_id)
         else:
