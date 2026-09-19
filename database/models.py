@@ -33,9 +33,18 @@ class Client(Base):
     id = Column(BIGINT, primary_key=True, autoincrement=True)
     telegram_id = Column(BIGINT, unique=True, nullable=True, index=True)
     phone_number = Column(String(20), unique=True, nullable=False, index=True)
-    cargo_id = Column(String(5), unique=True, nullable=True, index=True)
+    # "48392" (oddiy mijoz) yoki "MS48392" (alohida klient) — bot/utils/cargo_id_gen.py
+    cargo_id = Column(String(10), unique=True, nullable=True, index=True)
     full_name = Column(String(255), nullable=True)
     language = Column(String(5), default="uz", nullable=False)
+    # Agent (alohida klient) — mijoz kim nomidan ro'yxatga olingan.
+    # NULL = oddiy mijoz. Qarang: bot/utils/agents.py
+    agent_id = Column(
+        BIGINT,
+        ForeignKey("clients.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     created_by = Column(BIGINT, nullable=False)
 

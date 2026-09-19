@@ -77,12 +77,16 @@
         "generated_id_preview": "🆔 Yangi Cargo ID tayyor:\n\n<b><code>{cargo_id}</code></b>\n\n📞 Telefon: <b>{phone}</b>\n\nNima qilmoqchisiz?",
         "confirm_id_btn": "✅ Tasdiqlash",
         "manual_id_btn": "✏️ Qo'lda ID kiritish",
-        "enter_manual_id": "✏️ O'zingiz xohlagan 5 xonali Cargo ID kiriting:",
-        "manual_id_taken": "⚠️ Bu ID allaqachon band. Boshqa 5 xonali son kiriting:"
+        "choose_owner": "🆔 <b>Yangi Cargo ID</b>\n\nID kim nomidan yaratilmoqda?\n\n• <b>Oddiy mijoz</b> — ID: <code>48392</code>\n• <b>Alohida klient</b> — ID prefiksli: <code>MS48392</code>",
+        "owner_normal": "👤 Oddiy mijoz",
+        "owner_selected": "🏷️ <b>{name}</b> nomidan — ID <code>{prefix}</code> bilan boshlanadi.",
+        "attached_to_agent": "🏷️ Mijoz <b>{name}</b> ga biriktirildi.",
+        "enter_manual_id": "✏️ Cargo ID ni kiriting — 5 xonali son (<code>48392</code>) yoki MS bilan (<code>MS48392</code>):",
+        "manual_id_taken": "⚠️ Bu ID allaqachon band. Boshqasini kiriting:"
     },
     "manage_cargo": {
         "title": "📦 Yuk biriktirish",
-        "request_cargo_id": "🆔 Cargo ID ni kiriting (5 xonali son):",
+        "request_cargo_id": "🆔 Cargo ID ni kiriting (<code>48392</code> yoki <code>MS48392</code>):",
         "cargo_not_found": "❌ Cargo ID topilmadi",
         "client_found": "👤 <b>{name}</b>\n📞 <b>{phone}</b>\n🆔 Cargo ID: <b><code>{cargo_id}</code></b>",
         "client_confirmation": {
@@ -102,7 +106,7 @@
         "errors": {
             "description_required": "⚠️ Yuk nimaligi majburiy! O'tkazib yuborib bo'lmaydi.",
             "invalid_number": "⚠️ Faqat 0 dan katta musbat son kiriting!",
-            "invalid_cargo_id": "⚠️ Cargo ID 5 xonali son bo'lishi kerak!"
+            "invalid_cargo_id": "⚠️ Cargo ID 5 xonali son bo'lishi kerak: <code>48392</code> yoki <code>MS48392</code>"
         },
         "preview": "📋 <b>Yuk ma'lumoti (tekshirish)</b>\n━━━━━━━━━━━━━━━━━━━━\n\n🆔 Cargo ID: <b>{cargo_id}</b>\n👤 Mijoz: <b>{client_name}</b>\n📋 Yuk: <b>{description}</b>\n⚖️ Kilosi: <b>{weight}</b>\n📦 Cargo kilosi: <b>{cargo_weight}</b>\n💰 Narxi: <b>{price}</b>\n📝 Izoh: <b>{notes}</b>\n━━━━━━━━━━━━━━━━━━━━",
         "confirm": "Yuk ma'lumotlarini saqlash?",
@@ -169,7 +173,7 @@
     },
     "track_cargo": {
         "title": "🔍 <b>Yukimni kuzatish</b>",
-        "request_cargo_id": "🔍 <b>Yukimni kuzatish</b>\n\n🆔 5 xonali Cargo ID raqamingizni kiriting:\n\nMisol: <code>48392</code>",
+        "request_cargo_id": "🔍 <b>Yukimni kuzatish</b>\n\n🆔 Cargo ID raqamingizni kiriting:\n\nMisol: <code>48392</code> yoki <code>MS48392</code>",
         "cargo_not_found": "❌ Cargo ID topilmadi.\n\nIltimos, IDni qayta tekshirib kiriting.",
         "no_access": "⛔ Bu Cargo ID siz bilan bog'liq emas.\n\nFaqat o'zingizning IDni kuzatishingiz mumkin.",
         "cargo_info": "📦 <b>Yuk ma'lumoti</b>\n\n🆔 Cargo ID: <b><code>{cargo_id}</code></b>\n📋 Yuk: <b>{description}</b>\n⚖️ Kilosi: <b>{weight}</b>\n📦 Cargo kilosi: <b>{cargo_weight}</b>\n💰 Narxi: <b>{price}</b>\n📌 Holat: <b>{status}</b>\n📝 Izoh: <b>{notes}</b>\n📅 Yaratilgan: <b>{created_at}</b>",

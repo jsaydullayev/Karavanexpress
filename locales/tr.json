@@ -77,12 +77,16 @@
         "generated_id_preview": "🆔 Yeni Cargo ID hazır:\n\n<b><code>{cargo_id}</code></b>\n\n📞 Telefon: <b>{phone}</b>\n\nNe yapmak istiyorsunuz?",
         "confirm_id_btn": "✅ Onayla",
         "manual_id_btn": "✏️ Manuel ID gir",
-        "enter_manual_id": "✏️ İstediğiniz 5 haneli Cargo ID'yi girin:",
-        "manual_id_taken": "⚠️ Bu ID zaten kullanımda. Başka bir 5 haneli sayı girin:"
+        "choose_owner": "🆔 <b>Yeni Cargo ID</b>\n\nID kimin adına oluşturuluyor?\n\n• <b>Normal müşteri</b> — ID: <code>48392</code>\n• <b>Ayrı müşteri</b> — ön ekli ID: <code>MS48392</code>",
+        "owner_normal": "👤 Normal müşteri",
+        "owner_selected": "🏷️ <b>{name}</b> adına — ID <code>{prefix}</code> ile başlar.",
+        "attached_to_agent": "🏷️ Müşteri <b>{name}</b> ile ilişkilendirildi.",
+        "enter_manual_id": "✏️ Cargo ID girin — 5 haneli sayı (<code>48392</code>) veya MS ile (<code>MS48392</code>):",
+        "manual_id_taken": "⚠️ Bu ID zaten kullanımda. Başkasını girin:"
     },
     "manage_cargo": {
         "title": "📦 Yük ekle",
-        "request_cargo_id": "🆔 Cargo ID girin (5 haneli):",
+        "request_cargo_id": "🆔 Cargo ID girin (<code>48392</code> veya <code>MS48392</code>):",
         "cargo_not_found": "❌ Cargo ID bulunamadı",
         "client_found": "👤 <b>{name}</b>\n📞 <b>{phone}</b>\n🆔 Cargo ID: <b><code>{cargo_id}</code></b>",
         "client_confirmation": {
@@ -102,7 +106,7 @@
         "errors": {
             "description_required": "⚠️ Yük açıklaması zorunlu! Atlanamaz.",
             "invalid_number": "⚠️ Yalnızca 0'dan büyük pozitif sayı girin!",
-            "invalid_cargo_id": "⚠️ Cargo ID 5 haneli sayı olmalıdır!"
+            "invalid_cargo_id": "⚠️ Cargo ID 5 haneli sayı olmalıdır: <code>48392</code> veya <code>MS48392</code>"
         },
         "preview": "📋 <b>Yük bilgisi (kontrol)</b>\n━━━━━━━━━━━━━━━━━━━━\n\n🆔 Cargo ID: <b>{cargo_id}</b>\n👤 Müşteri: <b>{client_name}</b>\n📋 Yük: <b>{description}</b>\n⚖️ Ağırlık: <b>{weight}</b>\n📦 Paket ağırlığı: <b>{cargo_weight}</b>\n💰 Fiyat: <b>{price}</b>\n📝 Notlar: <b>{notes}</b>\n━━━━━━━━━━━━━━━━━━━━",
         "confirm": "Yük bilgilerini kaydetmek istiyor musunuz?",
@@ -169,7 +173,7 @@
     },
     "track_cargo": {
         "title": "🔍 <b>Yükümü takip et</b>",
-        "request_cargo_id": "🔍 <b>Yükümü takip et</b>\n\n🆔 5 haneli Cargo ID'nizi girin:\n\nÖrnek: <code>48392</code>",
+        "request_cargo_id": "🔍 <b>Yükümü takip et</b>\n\n🆔 Cargo ID'nizi girin:\n\nÖrnek: <code>48392</code> veya <code>MS48392</code>",
         "cargo_not_found": "❌ Cargo ID bulunamadı.\n\nLütfen ID'yi kontrol edip tekrar deneyin.",
         "no_access": "⛔ Bu Cargo ID size ait değil.\n\nYalnızca kendi ID'nizi takip edebilirsiniz.",
         "cargo_info": "📦 <b>Yük bilgisi</b>\n\n🆔 Cargo ID: <b><code>{cargo_id}</code></b>\n📋 Yük: <b>{description}</b>\n⚖️ Ağırlık: <b>{weight}</b>\n📦 Paket ağırlığı: <b>{cargo_weight}</b>\n💰 Fiyat: <b>{price}</b>\n📌 Durum: <b>{status}</b>\n📝 Notlar: <b>{notes}</b>\n📅 Oluşturuldu: <b>{created_at}</b>",
