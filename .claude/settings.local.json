@@ -1,7 +1,37 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python main.py)"
+      "Bash(python main.py)",
+      "Bash(docker version *)",
+      "Bash(awk ' *)",
+      "Bash(gzip -9 -c cargo_db_restore.sql)",
+      "Bash(gzip -t \"C:/Users/joo/Downloads/cargo_db_restore.sql.gz\")",
+      "Bash(git --git-dir=.git --work-tree=. status --short)",
+      "Bash(git --git-dir=.git --work-tree=. diff --stat)",
+      "Bash(git worktree *)",
+      "Bash(env)",
+      "Bash(awk '$1==\"160000\"')",
+      "Bash(git ls-remote *)",
+      "Bash(gzip -dc \"C:/Users/joo/Downloads/aliway_pg_full_2026-07-30.sql.gz\")",
+      "Bash(awk 'index\\($0,\"\\\\\\\\connect cargo_db\"\\)==1{on=1;next} $0==\"-- Database \\\\\"postgres\\\\\" dump\"{on=0} on{ if\\(index\\($0,\"\\\\\\\\restrict\"\\)==1||index\\($0,\"\\\\\\\\unrestrict\"\\)==1||index\\($0,\"\\\\\\\\connect\"\\)==1\\) next; if\\(index\\($0,\"OWNER TO \"\\)>0||index\\($0,\"GRANT \"\\)==1||index\\($0,\"REVOKE \"\\)==1\\) next; print }')",
+      "Bash(awk '/^COPY /{n=$2;c=0;b=1;next} b&&/^\\\\\\\\\\\\.$/{printf \"%-24s %d\\\\n\",n,c;b=0;next} b{c++}' inline_test.sql)",
+      "Bash(grep -c \"OWNER TO\\\\|^GRANT\\\\|^\\\\\\\\\\\\\\\\connect\\\\|^\\\\\\\\\\\\\\\\restrict\" inline_test.sql)",
+      "Bash(python -c ' *)",
+      "Bash(python -m py_compile bot/handlers/manager/update_status.py bot/handlers/client/track.py bot/handlers/manager/manage_cargo.py database/crud.py)",
+      "Bash(python -m pytest tests/ -q)",
+      "Bash(python -m pytest tests/ -q --ignore=tests/test_db.py --ignore=tests/integration_test.py)",
+      "Bash(git --no-pager diff -- bot/handlers/manager/update_status.py)",
+      "Bash(git --no-pager diff --stat -- bot database locales)",
+      "Bash(python -m py_compile bot/handlers/manager/update_status.py)",
+      "Bash(python -c \"import main; print\\('OK'\\)\")",
+      "Bash(timeout 25 python -c ' *)",
+      "Bash(python -m py_compile database/seed.py update_company_info.py)",
+      "Bash(python -m py_compile database/seed.py database/crud.py bot/handlers/client/groups.py reset_groups.py)",
+      "Bash(git status *)",
+      "Bash(echo \"=== exit: $?\")",
+      "Bash(git update-index *)",
+      "Bash(echo \"=== exit code: $?\")",
+      "Bash(gh pr *)"
     ]
   }
 }
