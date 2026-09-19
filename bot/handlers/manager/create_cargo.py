@@ -17,7 +17,13 @@ from aiogram.types import (
 
 from bot.keyboards.inline_kb import yes_no_keyboard, navigation_keyboard
 from bot.middlewares.i18n_middleware import I18nMiddleware
-from bot.utils.cargo_id_gen import cargo_id_generator
+from bot.utils.agents import AGENTS, get_agent
+from bot.utils.cargo_id_gen import (
+    PREFIX_NONE,
+    cargo_id_generator,
+    normalize_cargo_id,
+    split_cargo_id,
+)
 from bot.utils.notifications import send_cargo_id_notification
 from database.crud import client_crud
 from database.database import get_session
@@ -27,6 +33,7 @@ create_cargo_router = Router()
 
 
 class CreateCargoStates(StatesGroup):
+    choosing_owner = State()
     waiting_phone = State()
     choosing_action = State()
     confirming_update = State()
@@ -56,6 +63,32 @@ def _existing_cargo_choice_keyboard(i18n: I18nMiddleware, lang: str) -> InlineKe
             ),
         ],
     ])
+
+
+def _owner_keyboard(i18n: I18nMiddleware, lang: str) -> InlineKeyboardMarkup:
+    """Kim nomidan ID yaratilmoqda — oddiy mijoz yoki agentlardan biri"""
+    rows = [[
+        InlineKeyboardButton(
+            text=i18n.get_text(lang, "create_cargo.owner_normal"),
+            callback_data="create_cargo:owner:none",
+        ),
+    ]]
+
+    for agent in AGENTS:
+        rows.append([
+            InlineKeyboardButton(
+                text=f"🏷️ {agent.full_name} ({agent.cargo_id_prefix})",
+                callback_data=f"create_cargo:owner:{agent.key}",
+            ),
+        ])
+
+    rows.append([
+        InlineKeyboardButton(
+            text=i18n.get_text(lang, "buttons.cancel"),
+            callback_data="create_cargo:cancel",
+        ),
+    ])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def _id_preview_keyboard(i18n: I18nMiddleware, lang: str) -> InlineKeyboardMarkup:
@@ -122,14 +155,48 @@ async def create_cargo_start(
     state: FSMContext,
     i18n: I18nMiddleware,
 ) -> None:
-    """Cargo ID yaratishni boshlash — telefon raqam so'rash"""
+    """Cargo ID yaratishni boshlash — kim nomidan ekanini so'rash"""
     lang = i18n.get_user_language(callback.from_user.id)
 
     await state.clear()
-    await state.set_state(CreateCargoStates.waiting_phone)
+    await state.set_state(CreateCargoStates.choosing_owner)
 
     await callback.message.edit_text(
-        i18n.get_text(lang, "create_cargo.request_phone"),
+        i18n.get_text(lang, "create_cargo.choose_owner"),
+        reply_markup=_owner_keyboard(i18n, lang),
+    )
+    await callback.answer()
+
+
+@create_cargo_router.callback_query(
+    CreateCargoStates.choosing_owner,
+    F.data.startswith("create_cargo:owner:"),
+)
+async def owner_selected(
+    callback: CallbackQuery,
+    state: FSMContext,
+    i18n: I18nMiddleware,
+) -> None:
+    """Kim nomidan ekani tanlandi — endi mijoz telefon raqamini so'raymiz"""
+    lang = i18n.get_user_language(callback.from_user.id)
+    owner_key = callback.data.split(":")[2]
+
+    if owner_key == "none":
+        await state.update_data(agent_key=None, id_prefix=PREFIX_NONE)
+        header = ""
+    else:
+        agent = get_agent(owner_key)
+        if not agent:
+            await callback.answer("⚠️", show_alert=True)
+            return
+        await state.update_data(agent_key=agent.key, id_prefix=agent.cargo_id_prefix)
+        header = (
+            f"{i18n.get_text(lang, 'create_cargo.owner_selected', name=agent.full_name, prefix=agent.cargo_id_prefix)}\n\n"
+        )
+
+    await state.set_state(CreateCargoStates.waiting_phone)
+    await callback.message.edit_text(
+        f"{header}{i18n.get_text(lang, 'create_cargo.request_phone')}",
         reply_markup=navigation_keyboard(lang=lang, i18n=i18n, back_callback="manager:menu"),
     )
     await callback.answer()
@@ -303,8 +370,11 @@ async def _show_generated_id_preview(
     phone: str,
 ) -> None:
     """Avtomatik yaratilgan ID ni preview ko'rsatish — 2 tugma bilan"""
+    data = await state.get_data()
+    prefix = data.get("id_prefix", PREFIX_NONE)
+
     async with get_session() as session:
-        new_cargo_id = await cargo_id_generator.generate_unique_id(session)
+        new_cargo_id = await cargo_id_generator.generate_unique_id(session, prefix=prefix)
 
     await state.update_data(generated_cargo_id=new_cargo_id)
 
@@ -433,11 +503,24 @@ async def process_manual_id(
 ) -> None:
     """Qo'lda kiritilgan ID ni tekshirish va saqlash"""
     lang = i18n.get_user_language(message.from_user.id)
-    cargo_id_input = (message.text or "").strip()
 
-    if len(cargo_id_input) != 5 or not cargo_id_input.isdigit():
+    is_valid, cargo_id_input = normalize_cargo_id(message.text or "")
+
+    if not is_valid:
         await message.answer(i18n.get_text(lang, "manage_cargo.errors.invalid_cargo_id"))
         return
+
+    data = await state.get_data()
+    client_id = data.get("client_id")
+    phone = data.get("phone", "")
+    old_cargo_id = data.get("old_cargo_id")
+    chosen_prefix = data.get("id_prefix", PREFIX_NONE)
+
+    # Faqat raqam kiritilgan bo'lsa, tanlangan tur prefiksini qo'shamiz —
+    # MS turini tanlab "48392" yozilsa, "MS48392" bo'ladi.
+    entered_prefix, digits = split_cargo_id(cargo_id_input)
+    if entered_prefix == PREFIX_NONE and chosen_prefix != PREFIX_NONE:
+        cargo_id_input = f"{chosen_prefix}{digits}"
 
     async with get_session() as session:
         is_available = await cargo_id_generator.is_id_available(session, cargo_id_input)
@@ -445,11 +528,6 @@ async def process_manual_id(
     if not is_available:
         await message.answer(i18n.get_text(lang, "create_cargo.manual_id_taken"))
         return
-
-    data = await state.get_data()
-    client_id = data.get("client_id")
-    phone = data.get("phone", "")
-    old_cargo_id = data.get("old_cargo_id")
 
     result_text = await _persist_cargo_id(
         state=state,
@@ -482,8 +560,29 @@ async def _persist_cargo_id(
     manager_id: int,
 ) -> str:
     """DB ga saqlash va natija matnini qaytarish."""
+    data = await state.get_data()
+    agent = get_agent(data.get("agent_key") or "")
+
     notification_sent = False
     async with get_session() as session:
+        # Agent tanlangan bo'lsa — uning yozuvini topamiz (bo'lmasa yaratamiz)
+        agent_db_id = None
+        if agent:
+            agent_client = await client_crud.get_or_create_agent(
+                session=session,
+                phone_number=agent.phone_number,
+                full_name=agent.full_name,
+                created_by=manager_id,
+            )
+            agent_db_id = agent_client.id
+
+        if not client_id:
+            # Raqam bo'yicha qayta tekshiramiz: agentning o'ziga ID yaratilayotgan
+            # bo'lsa, uning yozuvi yuqorida endigina yaratilgan bo'lishi mumkin —
+            # bir xil raqam bilan ikkinchi mijoz yaratsak unique buziladi.
+            existing = await client_crud.get_by_phone(session, phone)
+            client_id = existing.id if existing else None
+
         if client_id:
             client = await client_crud.update_cargo_id(session, client_id, new_cargo_id)
         else:
@@ -495,7 +594,13 @@ async def _persist_cargo_id(
                 telegram_id=None,
                 full_name=None,
                 language=lang,
+                agent_id=agent_db_id,
             )
+
+        # Mavjud mijoz bo'lsa — biriktirishni alohida qo'yamiz
+        if client and agent_db_id and client.agent_id != agent_db_id:
+            await client_crud.set_agent(session, client.id, agent_db_id)
+
         await session.commit()
 
         if client and client.telegram_id:
@@ -519,8 +624,16 @@ async def _persist_cargo_id(
             phone=phone, cargo_id=new_cargo_id,
         )
 
+    if agent:
+        result_text += f"\n\n{i18n.get_text(lang, 'create_cargo.attached_to_agent', name=agent.full_name)}"
+
     if notification_sent:
         result_text += f"\n\n{i18n.get_text(lang, 'create_cargo.notification_sent')}"
+
+    logger.info(
+        f"Cargo ID saqlandi — Manager: {manager_id}, ID: {new_cargo_id}, "
+        f"Agent: {agent.full_name if agent else '—'}"
+    )
 
     await state.clear()
     return result_text

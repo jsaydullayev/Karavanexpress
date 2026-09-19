@@ -18,6 +18,7 @@ from aiogram.filters import Command
 
 from bot.keyboards.inline_kb import navigation_keyboard
 from bot.middlewares.i18n_middleware import I18nMiddleware
+from bot.utils.cargo_id_gen import normalize_cargo_id
 from bot.utils.notifications import STATUS_KEY_MAP
 from database.crud import client_crud, shipment_crud
 from database.database import get_session
@@ -136,9 +137,10 @@ async def cargo_id_input(
 ) -> None:
     """Cargo ID qabul qilindi — clientga tegishli ekanini tekshirish"""
     lang = i18n.get_user_language(message.from_user.id)
-    cargo_id = (message.text or "").strip()
 
-    if len(cargo_id) != 5 or not cargo_id.isdigit():
+    is_valid, cargo_id = normalize_cargo_id(message.text or "")
+
+    if not is_valid:
         await message.answer(i18n.get_text(lang, "manage_cargo.errors.invalid_cargo_id"))
         return
 

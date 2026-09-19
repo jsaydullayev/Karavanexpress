@@ -77,12 +77,16 @@
         "generated_id_preview": "🆔 Новый Cargo ID готов:\n\n<b><code>{cargo_id}</code></b>\n\n📞 Телефон: <b>{phone}</b>\n\nЧто хотите сделать?",
         "confirm_id_btn": "✅ Подтвердить",
         "manual_id_btn": "✏️ Ввести ID вручную",
-        "enter_manual_id": "✏️ Введите желаемый 5-значный Cargo ID:",
-        "manual_id_taken": "⚠️ Этот ID уже занят. Введите другое 5-значное число:"
+        "choose_owner": "🆔 <b>Новый Cargo ID</b>\n\nОт чьего имени создаётся ID?\n\n• <b>Обычный клиент</b> — ID: <code>48392</code>\n• <b>Отдельный клиент</b> — ID с префиксом: <code>MS48392</code>",
+        "owner_normal": "👤 Обычный клиент",
+        "owner_selected": "🏷️ От имени <b>{name}</b> — ID начинается с <code>{prefix}</code>.",
+        "attached_to_agent": "🏷️ Клиент привязан к <b>{name}</b>.",
+        "enter_manual_id": "✏️ Введите Cargo ID — 5-значное число (<code>48392</code>) или с MS (<code>MS48392</code>):",
+        "manual_id_taken": "⚠️ Этот ID уже занят. Введите другой:"
     },
     "manage_cargo": {
         "title": "📦 Добавить груз",
-        "request_cargo_id": "🆔 Введите Cargo ID (5-значное число):",
+        "request_cargo_id": "🆔 Введите Cargo ID (<code>48392</code> или <code>MS48392</code>):",
         "cargo_not_found": "❌ Cargo ID не найден",
         "client_found": "👤 <b>{name}</b>\n📞 <b>{phone}</b>\n🆔 Cargo ID: <b><code>{cargo_id}</code></b>",
         "client_confirmation": {
@@ -102,7 +106,7 @@
         "errors": {
             "description_required": "⚠️ Описание груза обязательно! Пропустить нельзя.",
             "invalid_number": "⚠️ Введите положительное число больше 0!",
-            "invalid_cargo_id": "⚠️ Cargo ID должен быть 5-значным числом!"
+            "invalid_cargo_id": "⚠️ Cargo ID должен быть 5-значным числом: <code>48392</code> или <code>MS48392</code>"
         },
         "preview": "📋 <b>Информация о грузе (проверка)</b>\n━━━━━━━━━━━━━━━━━━━━\n\n🆔 Cargo ID: <b>{cargo_id}</b>\n👤 Клиент: <b>{client_name}</b>\n📋 Груз: <b>{description}</b>\n⚖️ Вес: <b>{weight}</b>\n📦 Вес упаковки: <b>{cargo_weight}</b>\n💰 Цена: <b>{price}</b>\n📝 Заметки: <b>{notes}</b>\n━━━━━━━━━━━━━━━━━━━━",
         "confirm": "Сохранить информацию о грузе?",
@@ -169,7 +173,7 @@
     },
     "track_cargo": {
         "title": "🔍 <b>Отследить груз</b>",
-        "request_cargo_id": "🔍 <b>Отследить груз</b>\n\n🆔 Введите ваш 5-значный Cargo ID:\n\nПример: <code>48392</code>",
+        "request_cargo_id": "🔍 <b>Отследить груз</b>\n\n🆔 Введите ваш Cargo ID:\n\nПример: <code>48392</code> или <code>MS48392</code>",
         "cargo_not_found": "❌ Cargo ID не найден.\n\nПожалуйста, проверьте ID и попробуйте снова.",
         "no_access": "⛔ Этот Cargo ID не принадлежит вам.\n\nВы можете отслеживать только свой ID.",
         "cargo_info": "📦 <b>Информация о грузе</b>\n\n🆔 Cargo ID: <b><code>{cargo_id}</code></b>\n📋 Груз: <b>{description}</b>\n⚖️ Вес: <b>{weight}</b>\n📦 Вес упаковки: <b>{cargo_weight}</b>\n💰 Цена: <b>{price}</b>\n📌 Статус: <b>{status}</b>\n📝 Заметки: <b>{notes}</b>\n📅 Создан: <b>{created_at}</b>",

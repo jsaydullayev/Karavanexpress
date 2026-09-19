@@ -47,6 +47,7 @@ class ClientCRUD:
         telegram_id: Optional[int] = None,
         full_name: Optional[str] = None,
         language: str = "uz",
+        agent_id: Optional[int] = None,
     ) -> Client:
         """Yangi client yaratish"""
         client = Client(
@@ -56,9 +57,57 @@ class ClientCRUD:
             telegram_id=telegram_id,
             full_name=full_name,
             language=language,
+            agent_id=agent_id,
         )
         session.add(client)
         await session.flush()
+        return client
+
+    @staticmethod
+    async def get_or_create_agent(
+        session: AsyncSession,
+        phone_number: str,
+        full_name: str,
+        created_by: int,
+    ) -> Client:
+        """
+        Agent (alohida klient) yozuvini telefon raqami bo'yicha topish,
+        bo'lmasa yaratish. Qarang: bot/utils/agents.py
+        """
+        agent = await ClientCRUD.get_by_phone(session, phone_number)
+
+        if agent is None:
+            agent = Client(
+                phone_number=phone_number,
+                full_name=full_name,
+                created_by=created_by,
+            )
+            session.add(agent)
+            await session.flush()
+        elif not agent.full_name:
+            # Bazada raqam bor, lekin ism yo'q — to'ldirib qo'yamiz
+            agent.full_name = full_name
+            await session.flush()
+
+        return agent
+
+    @staticmethod
+    async def set_agent(
+        session: AsyncSession,
+        client_id: int,
+        agent_id: Optional[int],
+    ) -> Optional[Client]:
+        """Mijozni agentga biriktirish (o'zini o'ziga biriktirib bo'lmaydi)"""
+        if client_id == agent_id:
+            return None
+
+        result = await session.execute(
+            select(Client).where(Client.id == client_id)
+        )
+        client = result.scalar_one_or_none()
+        if client:
+            client.agent_id = agent_id
+            await session.flush()
         return client
 
     @staticmethod
