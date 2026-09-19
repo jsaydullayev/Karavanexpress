@@ -6,7 +6,7 @@ from datetime import datetime
 
 from sqlalchemy import select, and_, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import aliased, selectinload
 
 from .models import Client, Shipment, Group, GroupCategory, CompanyInfo, CargoStatus
 
@@ -193,13 +193,16 @@ class ClientCRUD:
         Excel eksport uchun barcha mijozlarni yuklar soni bilan olish
 
         Returns:
-            Tuple ro'yxati: (cargo_id, full_name, phone, telegram_id, language, created_at, shipments_count)
+            Tuple ro'yxati: (cargo_id, full_name, phone, telegram_id, language,
+                             created_at, shipments_count, agent_name)
         """
         shipments_count_subq = (
             select(Shipment.client_id, func.count(Shipment.id).label("ship_count"))
             .group_by(Shipment.client_id)
             .subquery()
         )
+
+        agent = aliased(Client)
 
         query = (
             select(
@@ -210,8 +213,10 @@ class ClientCRUD:
                 Client.language,
                 Client.created_at,
                 func.coalesce(shipments_count_subq.c.ship_count, 0),
+                agent.full_name,
             )
             .outerjoin(shipments_count_subq, shipments_count_subq.c.client_id == Client.id)
+            .outerjoin(agent, Client.agent_id == agent.id)
             .order_by(Client.created_at.desc())
         )
 
@@ -478,7 +483,14 @@ class ShipmentCRUD:
         session: AsyncSession,
         active_only: bool = False,
     ) -> List[tuple]:
-        """Excel eksport uchun barcha yuklarni olish"""
+        """
+        Excel eksport uchun barcha yuklarni olish.
+
+        Agent nomi OXIRIDA (index 10) turadi — oldingi indekslar o'zgarmasin
+        (export.py status bo'yicha filtrda `row[8]` ni ishlatadi).
+        """
+        agent = aliased(Client)
+
         query = select(
             Client.cargo_id,
             Client.full_name,
@@ -490,7 +502,12 @@ class ShipmentCRUD:
             Shipment.currency,
             Shipment.status,
             Shipment.created_at,
-        ).join(Client)
+            agent.full_name,
+        ).select_from(Shipment).join(
+            # Ikkita Client (mijoz + agent aliasi) bo'lgani uchun ON shart aniq
+            # yozilgan — aks holda SQLAlchemy qaysi tomondan bog'lashni bilmaydi.
+            Client, Shipment.client_id == Client.id,
+        ).outerjoin(agent, Client.agent_id == agent.id)
 
         if active_only:
             query = query.where(Shipment.status != CargoStatus.DELIVERED)

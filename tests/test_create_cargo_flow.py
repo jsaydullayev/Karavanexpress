@@ -50,6 +50,24 @@ CREATE TABLE clients (
 )
 """
 
+DDL_SHIPMENTS = """
+CREATE TABLE shipments (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id       BIGINT NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    description     TEXT NOT NULL,
+    weight_kg       NUMERIC,
+    cargo_weight_kg NUMERIC,
+    price           NUMERIC,
+    currency        VARCHAR(5),
+    photo_file_id   TEXT,
+    status          VARCHAR(20) NOT NULL DEFAULT 'pending',
+    notes           TEXT,
+    created_at      DATETIME NOT NULL,
+    updated_at      DATETIME NOT NULL,
+    created_by      BIGINT NOT NULL
+)
+"""
+
 engine = create_async_engine(
     "sqlite+aiosqlite://",
     poolclass=StaticPool,
@@ -177,6 +195,7 @@ async def run_flow(owner, phone, manual_id=None):
 async def main():
     async with engine.begin() as conn:
         await conn.execute(text(DDL_CLIENTS))
+        await conn.execute(text(DDL_SHIPMENTS))
 
     cc.get_session = fake_get_session
     # Handler `isinstance(target, CallbackQuery)` ishlatadi — soxta turimiz
@@ -274,6 +293,66 @@ async def main():
         if r.id != agent.id and bool(str(r.cargo_id).startswith("MS")) != bool(r.agent_id == agent.id)
     ]
     check("zid yozuv yo'q", not broken, ", ".join(f"{r.cargo_id}/{r.agent_id}" for r in broken))
+
+    print()
+    print("9) EXCEL EKSPORT — agent ustuni ko'rinadimi")
+    from bot.utils.excel_export import generate_clients_excel_file, generate_excel_file
+    from database.crud import client_crud, shipment_crud
+    from openpyxl import load_workbook
+    import io as _io
+
+    async with Session() as session:
+        # Bitta yuk qo'shamiz — yuklar eksporti bo'sh bo'lmasin
+        ms_client = await db_client("+998901112244")
+        await shipment_crud.create(
+            session=session,
+            client_id=ms_client.id,
+            description="Test yuk",
+            created_by=MANAGER_ID,
+        )
+        await session.commit()
+
+        client_rows = await client_crud.get_all_for_export(session)
+        shipment_rows = await shipment_crud.get_all_for_export(session)
+
+    check("mijozlar so'rovi ishladi", len(client_rows) == len(rows), f"{len(client_rows)} qator")
+    check("yuklar so'rovi ishladi", len(shipment_rows) == 1, f"{len(shipment_rows)} qator")
+
+    ws = load_workbook(_io.BytesIO(generate_clients_excel_file(client_rows).data)).active
+    headers = [c.value for c in ws[1]]
+    check("'Agent' ustuni bor", "Agent" in headers, str(headers))
+
+    agent_col = headers.index("Agent") + 1
+    cargo_col = headers.index("Cargo ID") + 1
+    by_cargo = {
+        ws.cell(row=r, column=cargo_col).value: ws.cell(row=r, column=agent_col).value
+        for r in range(2, ws.max_row + 1)
+    }
+    ms_ids = [cid for cid in by_cargo if str(cid).startswith("MS")]
+    check(
+        "har bir MS ID da agent nomi bor",
+        all(AGENT.full_name in str(by_cargo[cid]) for cid in ms_ids),
+        "; ".join(f"{cid}={by_cargo[cid]}" for cid in ms_ids),
+    )
+    check(
+        "prefikssiz ID da agent yo'q",
+        all(by_cargo[cid] == "—" for cid in by_cargo if not str(cid).startswith("MS")),
+        "; ".join(f"{cid}={by_cargo[cid]}" for cid in by_cargo if not str(cid).startswith("MS")),
+    )
+    check(
+        "agentning o'z qatori belgilangan",
+        "(o'zi)" in str(by_cargo.get(agent.cargo_id)),
+        f"{agent.cargo_id}={by_cargo.get(agent.cargo_id)}",
+    )
+
+    ws2 = load_workbook(_io.BytesIO(generate_excel_file(shipment_rows).data)).active
+    headers2 = [c.value for c in ws2[1]]
+    check("yuklar faylida ham 'Agent' bor", "Agent" in headers2, str(headers2))
+    check(
+        "yuk qatorida agent nomi",
+        ws2.cell(row=2, column=headers2.index("Agent") + 1).value == AGENT.full_name,
+        str(ws2.cell(row=2, column=headers2.index("Agent") + 1).value),
+    )
 
     print()
     print("=" * 70)
